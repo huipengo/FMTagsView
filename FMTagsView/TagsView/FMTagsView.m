@@ -8,13 +8,14 @@
 
 #import "FMTagsView.h"
 
-static NSString * const kTagCellID = @"TagCellID";
+static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 
 @interface FMTagModel : NSObject
 
 @property (copy, nonnull) NSString *name;
+
 @property (nonatomic) BOOL selected;
-//用于计算文字大小
+/** 用于计算文字大小 */
 @property (strong, nonatomic) UIFont *font;
 
 @property (nonatomic, readonly) CGSize contentSize;
@@ -42,7 +43,8 @@ static NSString * const kTagCellID = @"TagCellID";
 - (void)calculateContentSize {
     NSDictionary *dict = @{NSFontAttributeName: self.font};
     CGSize textSize = [_name boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 1000)
-                                          options:NSStringDrawingUsesLineFragmentOrigin attributes:dict context:nil].size;
+                                          options:NSStringDrawingUsesLineFragmentOrigin
+                                       attributes:dict context:nil].size;
     
     _contentSize = CGSizeMake(ceil(textSize.width), ceil(textSize.height));
 }
@@ -51,7 +53,7 @@ static NSString * const kTagCellID = @"TagCellID";
 
 @interface FMTagCell ()
 
-@property (nonatomic) FMTagModel *tagModel;
+@property (nonatomic, strong) FMTagModel *tagModel;
 
 @end
 
@@ -59,13 +61,38 @@ static NSString * const kTagCellID = @"TagCellID";
 
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame: frame]) {
-        _tagLabel = [[UILabel alloc] init];
-        _tagLabel.textAlignment = NSTextAlignmentCenter;
-        _tagLabel.userInteractionEnabled = NO;
-        [self.contentView addSubview:_tagLabel];
+        [self wb_viewConfigure];
     }
-    
     return self;
+}
+
+- (UILabel *)tagLabel {
+    if (!_tagLabel) {
+        _tagLabel = ({
+            UILabel *label = [[UILabel alloc] init];
+            label.textAlignment = NSTextAlignmentCenter;
+            label.userInteractionEnabled = NO;
+            label;
+        });
+    }
+    return _tagLabel;
+}
+
+- (UIButton *)imageButton {
+    if (!_imageButton) {
+        _imageButton = ({
+            UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [imageButton addTarget:self action:@selector(wb_imageAction:) forControlEvents:UIControlEventTouchUpInside];
+            imageButton.hidden = YES;
+            imageButton;
+        });
+    }
+    return _imageButton;
+}
+
+- (void)wb_viewConfigure {
+    [self.contentView addSubview:self.tagLabel];
+    [self.contentView addSubview:self.imageButton];
 }
 
 - (void)layoutSubviews {
@@ -76,6 +103,23 @@ static NSString * const kTagCellID = @"TagCellID";
     CGRect frame = CGRectMake(0, 0, width, [self.tagModel contentSize].height);
     self.tagLabel.frame = frame;
     self.tagLabel.center = self.contentView.center;
+    
+    UIImage *image = self.imageButton.imageView.image;
+    self.imageButton.hidden = (image == nil);
+    if (image) {
+        CGFloat w = bounds.size.width / 2.0f;
+        CGFloat h = bounds.size.height;
+        CGFloat x = bounds.size.width - w;
+        CGRect rect = CGRectMake(x, 0.0f, w, h);
+        self.imageButton.frame = rect;
+        
+        UIEdgeInsets imageEdgeInsets = UIEdgeInsetsMake(-(h/3.0f), frame.size.width / 2.0f, 0.0f, -0.0f);
+        [self.imageButton setImageEdgeInsets:imageEdgeInsets];
+    }
+}
+
+- (void)wb_imageAction:(UIButton *)sender {
+    !self.imageActionCompletion ?: self.imageActionCompletion();
 }
 
 @end
@@ -90,13 +134,12 @@ static NSString * const kTagCellID = @"TagCellID";
 
 @implementation FMEqualSpaceFlowLayout
 
-- (id)init
-{
+- (instancetype)init {
     if (self = [super init]) {
         self.scrollDirection = UICollectionViewScrollDirectionVertical;
-        self.minimumInteritemSpacing = 5;
-        self.minimumLineSpacing = 5;
-        self.sectionInset = UIEdgeInsetsMake(10, 10, 10, 10);
+        self.minimumInteritemSpacing = 5.0f;
+        self.minimumLineSpacing = 5.0f;
+        self.sectionInset = UIEdgeInsetsMake(10.0f, 10.0f, 10.0f, 10.0f);
     }
     
     return self;
@@ -185,7 +228,7 @@ static NSString * const kTagCellID = @"TagCellID";
 }
 
 - (CGSize)collectionViewContentSize {
-    //重新计算布局
+    /** 重新计算布局 */
     [self prepareLayout];
 
     CGSize contentSize  = CGSizeMake(self.collectionView.frame.size.width, self.contentHeight);
@@ -232,25 +275,42 @@ static NSString * const kTagCellID = @"TagCellID";
 
 - (void)commonInit {
     self.backgroundColor = [UIColor whiteColor];
-    _contentInsets = UIEdgeInsetsMake(10, 10, 10, 10);
-    _tagInsets = UIEdgeInsetsMake(5, 10, 5, 10);
-    _tagBorderWidth = 0;
-    _tagBackgroundColor = [UIColor colorWithRed:0.94 green:0.94 blue:0.94 alpha:1.0];
-    _tagSelectedBackgroundColor = [UIColor colorWithRed:1.0 green:0.38 blue:0.0 alpha:1.0];
-    _tagFont = [UIFont systemFontOfSize:14];
-    _tagSelectedFont = [UIFont systemFontOfSize:14];
-    _tagTextColor = [UIColor colorWithRed:0.2 green:0.2 blue:0.2 alpha:1.0];
+    
+    _contentInsets  = UIEdgeInsetsMake(10.0f, 15.0f, 10.0f, 15.0f);
+    _tagInsets      = UIEdgeInsetsMake(5.0f, 10.0f, 5.0f, 10.0f);
+    
+    _tagBorderWidth = 0.0f;
+    
+    _tagBackgroundColor = [UIColor colorWithRed:239.0f/255.0f
+                                          green:239.0f/255.0f
+                                           blue:244.0f/255.0f
+                                          alpha:1.0];
+    
+    _tagSelectedBackgroundColor = [UIColor colorWithRed:51.0f/255.0f
+                                                  green:82.0f/255.0f
+                                                   blue:254.0f/255.0f
+                                                  alpha:1.0];
+    
+    _tagFont         = [UIFont systemFontOfSize:14.0f];
+    _tagSelectedFont = [UIFont systemFontOfSize:14.0f];
+    
+    _tagTextColor = [UIColor colorWithRed:23.0f/255.0f
+                                    green:36.0f/255.0f
+                                     blue:52.0f/255.0f
+                                    alpha:1.0];
+    
     _tagSelectedTextColor = [UIColor whiteColor];
     
-    _tagHeight = 28;
-    _mininumTagWidth = 0;
+    _tagHeight       = 34.0f;
+    _mininumTagWidth = 0.0f;
     _maximumTagWidth = CGFLOAT_MAX;
-    _lineSpacing = 10;
-    _interitemSpacing = 5;
     
-    _allowsSelection = YES;
-    _allowsMultipleSelection = NO;
-    _allowEmptySelection = YES;
+    _lineSpacing      = 10.0f;
+    _interitemSpacing = 15.0f;
+    
+    _allowsSelection          = YES;
+    _allowsMultipleSelection  = NO;
+    _allowEmptySelection      = YES;
     _maximumNumberOfSelection = NSIntegerMax;
     
     [self addSubview:self.collectionView];
@@ -389,16 +449,34 @@ static NSString * const kTagCellID = @"TagCellID";
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    FMTagCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kTagCellID forIndexPath:indexPath];
+    FMTagCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:wb_tag_cell_indentifier
+                                                                forIndexPath:indexPath];
     
-    FMTagModel *tagModel = self.tagModels[indexPath.row];
+    FMTagModel *tagModel = [self.tagModels objectAtIndex:indexPath.row];
     cell.tagModel = tagModel;
+    
     cell.tagLabel.text = tagModel.name;
+
+    if (self.suffix_image) {
+        [cell.imageButton setImage:self.suffix_image forState:UIControlStateNormal];
+    }
+    
     cell.layer.cornerRadius = self.tagcornerRadius;
     cell.layer.masksToBounds = self.tagcornerRadius > 0;
+    
     cell.contentInsets = self.tagInsets;
     cell.layer.borderWidth = self.tagBorderWidth;
     [self setCell:cell selected:tagModel.selected];
+    
+    __weak typeof(self)weakSelf = self;
+    cell.imageActionCompletion = ^{
+        __strong typeof(weakSelf)strongSelf = weakSelf;
+        [strongSelf removeTagAtIndex:indexPath.row];
+
+        if ([strongSelf.delegate respondsToSelector:@selector(tagsView:imageTagAtIndex:)]) {
+            [strongSelf.delegate tagsView:strongSelf imageTagAtIndex:indexPath.row];
+        }
+    };
     
     return cell;
 }
@@ -410,7 +488,8 @@ static NSString * const kTagCellID = @"TagCellID";
         cell.tagLabel.font = self.tagSelectedFont;
         cell.tagLabel.textColor = self.tagSelectedTextColor;
         cell.layer.borderColor = self.tagSelectedBorderColor.CGColor;
-    }else {
+    }
+    else {
         cell.backgroundColor = self.tagBackgroundColor;
         cell.tagLabel.font = self.tagFont;
         cell.tagLabel.textColor = self.tagTextColor;
@@ -447,11 +526,10 @@ static NSString * const kTagCellID = @"TagCellID";
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    
     FMTagModel *tagModel = self.tagModels[indexPath.row];
     FMTagCell *cell = (FMTagCell *)[collectionView cellForItemAtIndexPath:indexPath];
+    
     if (self.allowsMultipleSelection) {
-        
         if (self.collectionView.indexPathsForSelectedItems.count > self.maximumNumberOfSelection) {
             if ([self.delegate respondsToSelector:@selector(tagsViewDidBeyondMaximumNumberOfSelection:)]) {
                 [self.delegate tagsViewDidBeyondMaximumNumberOfSelection:self];
@@ -505,7 +583,6 @@ static NSString * const kTagCellID = @"TagCellID";
                   layout:(UICollectionViewLayout*)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     FMTagModel *tagModel = self.tagModels[indexPath.row];
-    
     CGFloat width = tagModel.contentSize.width + self.tagInsets.left + self.tagInsets.right;
     if (width < self.mininumTagWidth) {
         width = self.mininumTagWidth;
@@ -537,12 +614,13 @@ static NSString * const kTagCellID = @"TagCellID";
         flowLayout.delegate = self;
         _collectionView = [[UICollectionView alloc] initWithFrame:self.bounds collectionViewLayout:flowLayout];
         _collectionView.backgroundColor = [UIColor clearColor];
-        [_collectionView registerClass:[FMTagCell class] forCellWithReuseIdentifier:kTagCellID];
+        [_collectionView registerClass:FMTagCell.class
+            forCellWithReuseIdentifier:wb_tag_cell_indentifier];
         _collectionView.dataSource = self;
         _collectionView.delegate = self;
     }
     
-    _collectionView.allowsSelection = _allowsSelection;
+    _collectionView.allowsSelection         = _allowsSelection;
     _collectionView.allowsMultipleSelection = _allowsMultipleSelection;
     
     return _collectionView;
