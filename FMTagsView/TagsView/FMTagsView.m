@@ -367,7 +367,11 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
     }
     FMTagModel *tagModel = self.tagModels[index];
     tagModel.selected = NO;
-    [self.collectionView deselectItemAtIndexPath:[NSIndexPath indexPathForRow:index inSection:0] animated:YES];
+
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
+    [self.collectionView deselectItemAtIndexPath:indexPath animated:YES];
+    [self.collectionView reloadItemsAtIndexPaths:@[indexPath]];
+
     if ([self.delegate respondsToSelector:@selector(tagsView:didDeSelectTagAtIndex:)]) {
         [self.delegate tagsView:self didDeSelectTagAtIndex:index];
     }
@@ -519,7 +523,7 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 }
 
 - (BOOL)collectionView:(UICollectionView *)collectionView shouldDeselectItemAtIndexPath:(NSIndexPath *)indexPath {
-    if ([self.delegate respondsToSelector:@selector(tagsView:didDeSelectTagAtIndex:)]) {
+    if ([self.delegate respondsToSelector:@selector(tagsView:shouldDeselectItemAtIndex:)]) {
         return [self.delegate tagsView:self shouldDeselectItemAtIndex:indexPath.row];
     }
     return YES;
@@ -536,25 +540,22 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
             }
             return;
         }
-        
-        tagModel.selected = YES;
-        [self setCell:cell selected:YES];
-        return;
     }
-    
-    //修复单选情况下，无法取消选中的问题
-    if (tagModel.selected) {
-        //不允许空选，直接返回
-        if (!self.allowEmptySelection && self.collectionView.indexPathsForSelectedItems.count == 1) {
+    else {
+        /** 修复单选情况下，无法取消选中的问题 */
+        if (tagModel.selected) {
+            /** 修复单选情况下，无法取消选中的问题 */
+            if (!self.allowEmptySelection && self.collectionView.indexPathsForSelectedItems.count == 1) {
+                return;
+            }
+            
+            cell.selected = NO;
+            collectionView.allowsMultipleSelection = YES;
+            [collectionView deselectItemAtIndexPath:indexPath animated:NO];
+            [self collectionView:collectionView didDeselectItemAtIndexPath:indexPath];
+            collectionView.allowsMultipleSelection = NO;
             return;
         }
-        
-        cell.selected = NO;
-        collectionView.allowsMultipleSelection = YES;
-        [collectionView deselectItemAtIndexPath:indexPath animated:NO];
-        [self collectionView:collectionView didDeselectItemAtIndexPath:indexPath];
-        collectionView.allowsMultipleSelection = NO;
-        return;
     }
     
     tagModel.selected = YES;
