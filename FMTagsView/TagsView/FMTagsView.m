@@ -379,7 +379,7 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 
 - (void)deSelectAll {
     for (NSIndexPath *indexPath in self.collectionView.indexPathsForSelectedItems) {
-        FMTagModel *tagModel = self.tagModels[indexPath.row];
+        FMTagModel *tagModel = self.tagModels[indexPath.item];
         tagModel.selected = NO;
         [self.collectionView deselectItemAtIndexPath:indexPath animated:YES];
     }
@@ -456,7 +456,7 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
     FMTagCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:wb_tag_cell_indentifier
                                                                 forIndexPath:indexPath];
     
-    FMTagModel *tagModel = [self.tagModels objectAtIndex:indexPath.row];
+    FMTagModel *tagModel = [self.tagModels objectAtIndex:indexPath.item];
     cell.tagModel = tagModel;
     
     cell.tagLabel.text = tagModel.name;
@@ -475,10 +475,10 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
     __weak typeof(self)weakSelf = self;
     cell.imageActionCompletion = ^{
         __strong typeof(weakSelf)strongSelf = weakSelf;
-        [strongSelf removeTagAtIndex:indexPath.row];
+        [strongSelf removeTagAtIndex:indexPath.item];
 
         if ([strongSelf.delegate respondsToSelector:@selector(tagsView:imageTagAtIndex:)]) {
-            [strongSelf.delegate tagsView:strongSelf imageTagAtIndex:indexPath.row];
+            [strongSelf.delegate tagsView:strongSelf imageTagAtIndex:indexPath.item];
         }
     };
     
@@ -506,7 +506,7 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 - (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath {
     FMTagCell *tagCell = (FMTagCell *)cell;
     if ([self.delegate respondsToSelector:@selector(tagsView:willDispayCell:atIndex:)]) {
-        [self.delegate tagsView:self willDispayCell:tagCell atIndex:indexPath.row];
+        [self.delegate tagsView:self willDispayCell:tagCell atIndex:indexPath.item];
     }
 }
 
@@ -516,7 +516,7 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 
 - (BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     if ([self.delegate respondsToSelector:@selector(tagsView:shouldSelectTagAtIndex:)]) {
-        return [self.delegate tagsView:self shouldSelectTagAtIndex:indexPath.row];
+        return [self.delegate tagsView:self shouldSelectTagAtIndex:indexPath.item];
     }
     
     return _allowsSelection;
@@ -524,13 +524,13 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 
 - (BOOL)collectionView:(UICollectionView *)collectionView shouldDeselectItemAtIndexPath:(NSIndexPath *)indexPath {
     if ([self.delegate respondsToSelector:@selector(tagsView:shouldDeselectItemAtIndex:)]) {
-        return [self.delegate tagsView:self shouldDeselectItemAtIndex:indexPath.row];
+        return [self.delegate tagsView:self shouldDeselectItemAtIndex:indexPath.item];
     }
     return YES;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    FMTagModel *tagModel = self.tagModels[indexPath.row];
+    FMTagModel *tagModel = self.tagModels[indexPath.item];
     FMTagCell *cell = (FMTagCell *)[collectionView cellForItemAtIndexPath:indexPath];
     
     if (self.allowsMultipleSelection) {
@@ -562,19 +562,19 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
     [self setCell:cell selected:YES];
     
     if ([self.delegate respondsToSelector:@selector(tagsView:didSelectTagAtIndex:)]) {
-        [self.delegate tagsView:self didSelectTagAtIndex:indexPath.row];
+        [self.delegate tagsView:self didSelectTagAtIndex:indexPath.item];
     }
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didDeselectItemAtIndexPath:(NSIndexPath *)indexPath {
     
-    FMTagModel *tagModel = self.tagModels[indexPath.row];
+    FMTagModel *tagModel = self.tagModels[indexPath.item];
     FMTagCell *cell = (FMTagCell *)[collectionView cellForItemAtIndexPath:indexPath];
     tagModel.selected = NO;
     [self setCell:cell selected:NO];
     
     if ([self.delegate respondsToSelector:@selector(tagsView:didDeSelectTagAtIndex:)]) {
-        [self.delegate tagsView:self didDeSelectTagAtIndex:indexPath.row];
+        [self.delegate tagsView:self didDeSelectTagAtIndex:indexPath.item];
     }
 }
 
@@ -583,7 +583,7 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout*)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    FMTagModel *tagModel = self.tagModels[indexPath.row];
+    FMTagModel *tagModel = self.tagModels[indexPath.item];
     CGFloat width = tagModel.contentSize.width + self.tagInsets.left + self.tagInsets.right;
     if (width < self.mininumTagWidth) {
         width = self.mininumTagWidth;
@@ -654,7 +654,7 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
     NSMutableArray *result = [[NSMutableArray alloc] init];
     
     for (NSIndexPath *indexPath in self.collectionView.indexPathsForSelectedItems) {
-        [result addObject:self.tagsMutableArray[indexPath.row]];
+        [result addObject:self.tagsMutableArray[indexPath.item]];
     }
     
     return result.copy;
@@ -668,7 +668,7 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
     NSMutableArray *result = [[NSMutableArray alloc] init];
     
     for (NSIndexPath *indexPath in self.collectionView.indexPathsForSelectedItems) {
-        [result addObject:@(indexPath.row)];
+        [result addObject:@(indexPath.item)];
     }
     
     return result.copy;
