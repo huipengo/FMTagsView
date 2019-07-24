@@ -91,6 +91,11 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 }
 
 - (void)wb_viewConfigure {
+    
+    UIView *selectedView = [[UIView alloc] init];
+    selectedView.backgroundColor = [UIColor colorWithRed:236.0f/255.0f green:236.0f/255.0f blue:236.0f/255.0f alpha:1.0f];
+    self.selectedBackgroundView = selectedView;
+    
     [self.contentView addSubview:self.tagLabel];
     [self.contentView addSubview:self.imageButton];
 }
@@ -530,6 +535,16 @@ static NSString * const wb_tag_cell_indentifier = @"wb_tag_cell_indentifier";
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    
+    [collectionView deselectItemAtIndexPath:indexPath animated:YES];
+    
+    if (self.tagSelected) {
+        if ([self.delegate respondsToSelector:@selector(tagsView:didSelectTagAtIndex:)]) {
+            [self.delegate tagsView:self didSelectTagAtIndex:indexPath.item];
+        }
+        return;
+    }
+    
     FMTagModel *tagModel = self.tagModels[indexPath.item];
     FMTagCell *cell = (FMTagCell *)[collectionView cellForItemAtIndexPath:indexPath];
     

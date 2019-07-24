@@ -71,6 +71,9 @@ typedef void(^WBTagImageActionCompletion)(void);
 
 #pragma mark - ......::::::: 选中 :::::::......
 
+/** 纯点击 */
+@property (nonatomic, assign) BOOL tagSelected;
+
 /** 是否允许选中, default is YES */
 @property (nonatomic) BOOL allowsSelection;
 
